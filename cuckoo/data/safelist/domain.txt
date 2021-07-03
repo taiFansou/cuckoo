@@ -1,3 +1,4 @@
+# You can add safelisted domains here.
 java.com
 www.msn.com
 www.bing.com
@@ -25,3 +26,10 @@ www.msftncsi.com
 ocsp.msocsp.com
 ocsp.omniroot.com
 crl.microsoft.com
+www.msftconnecttest.com
+v10.vortex-win.data.microsoft.com
+settings-win.data.microsoft.com
+win10.ipv6.microsoft.com
+sls.update.microsoft.com
+fs.microsoft.com
+ctldl.windowsupdate.com

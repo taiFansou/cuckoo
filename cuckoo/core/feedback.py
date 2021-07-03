@@ -18,9 +18,9 @@ from cuckoo.misc import version, cwd
 log = logging.getLogger(__name__)
 
 class CuckooFeedback(object):
-    """Contacts Cuckoo HQ with feedback & optional analysis dump."""
+    """Contact Cuckoo HQ with feedback & optional analysis dump."""
     endpoint = "https://feedback.cuckoosandbox.org/api/submit/"
-    exc_whitelist = (
+    exc_safelist = (
         CuckooFeedbackError,
     )
 
@@ -41,8 +41,8 @@ class CuckooFeedback(object):
             automated=True, message="Exception encountered: %s" % exception
         )
 
-        if isinstance(exception, self.exc_whitelist):
-            log.debug("A whitelisted exception occurred: %s", exception)
+        if isinstance(exception, self.exc_safelist):
+            log.debug("A safelisted exception occurred: %s", exception)
             return
 
         # Ignore 404 exceptions regarding ".map" development files.
@@ -200,7 +200,7 @@ class CuckooFeedbackObject(object):
         return self.include_report(report)
 
     def gather_export_files(self, dirpath):
-        """Returns a list of all files of interest from an analysis."""
+        """Return a list of all files of interest from an analysis."""
         ret = []
         for name in self.export_files:
             if isinstance(name, basestring):

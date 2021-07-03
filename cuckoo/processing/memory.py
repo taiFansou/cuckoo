@@ -90,7 +90,7 @@ class VolatilityAPI(object):
         return False
 
     def init_config(self):
-        """Creates a volatility configuration."""
+        """Create a volatility configuration."""
         if self.config is not None and self.addr_space is not None:
             return
 
@@ -619,7 +619,7 @@ class VolatilityAPI(object):
         command = self.plugins["apihooks"](self.config)
         for process, module, hook in command.calculate():
             proc_name = str(process.ImageFileName) if process else ''
-            if command.whitelist(hook.hook_mode | hook.hook_type,
+            if command.safelist(hook.hook_mode | hook.hook_type,
                                  proc_name, hook.VictimModule,
                                  hook.HookModule, hook.Function):
                 continue

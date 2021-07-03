@@ -2,6 +2,10 @@
    :alt: Cuckoo Sandbox
    :target: https://cuckoosandbox.org/
 
+**PLEASE NOTE: Cuckoo Sandbox 2.x is currently unmaintained. Any open issues
+or pull requests will most likely not be processed, as a current full rewrite
+of Cuckoo is undergoing and will be announced soon.**
+
 `Cuckoo Sandbox <https://cuckoosandbox.org/>`_ is the leading open source
 automated malware analysis system.
 
@@ -12,20 +16,19 @@ environment.
 
 If you want to contribute to development, report a bug, make a feature request
 or ask a question, please first take a look at our `community guidelines`_.
-For development, please also take a look at the `contribution requirements`_.
 Make sure you check our existing Issues and Pull Requests and that you join
 our IRC at `#cuckoosandbox` on FreeNode.
 
 For setup instructions, please refer
-`to <https://cuckoo.sh/docs/installation/host/requirements.html>`_
-`our <https://cuckoo.sh/docs/installation/host/installation.html>`_
-`documentation <https://cuckoo.sh/docs/index.html>`_.
+`to <https://docs.cuckoosandbox.org/en/latest/installation/host/requirements>`_
+`our <https://docs.cuckoosandbox.org/en/latest/installation/host/installation>`_
+`documentation <https://docs.cuckoosandbox.org/en/latest/>`_.
 
 This is a development version, we do not recommend its use in production; the
 latest stable version may be installed through :code:`pip install -U cuckoo`.
 
 You can find the full documentation of the latest stable release
-`here <https://cuckoo.sh/docs>`_.
+`here <https://docs.cuckoosandbox.org/en/latest/>`_.
 
 .. image:: https://travis-ci.org/cuckoosandbox/cuckoo.png?branch=master
    :alt: Linux Build Status
@@ -43,5 +46,5 @@ You can find the full documentation of the latest stable release
    :alt: Codecov Coverage Status
    :target: https://codecov.io/gh/cuckoosandbox/cuckoo
 
-.. _`community guidelines`: https://cuckoo.sh/docs/introduction/community.html
+.. _`community guidelines`: https://docs.cuckoosandbox.org/en/latest/introduction/community.html
 .. _`contribution requirements`: http://www.cuckoofoundation.org/contribute.html

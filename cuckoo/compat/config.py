@@ -481,7 +481,6 @@ def _20c1_20c2(c):
     }
     c["cuckoo"]["routing"]["rt_table"] = "main"
     c["cuckoo"]["routing"]["auto_rt"] = True
-    c["cuckoo"]["resultserver"]["force_port"] = False
     if c["cuckoo"]["timeouts"]["critical"] == 600:
         c["cuckoo"]["timeouts"]["critical"] = 60
     c["processing"]["misp"] = {
@@ -490,7 +489,7 @@ def _20c1_20c2(c):
         "apikey": None,
         "maxioc": 100,
     }
-    c["processing"]["network"]["whitelist-dns"] = False
+    c["processing"]["network"]["safelist-dns"] = False
     c["processing"]["network"]["allowed-dns"] = None
     c["processing"]["procmemory"]["extract_img"] = True
     c["processing"]["procmemory"]["dump_delete"] = False
@@ -555,9 +554,9 @@ def _20c2_200(c):
         "company": None,
         "email": None,
     }
-    c["processing"]["network"]["whitelist_dns"] = cast(
-        "processing:network:whitelist_dns",
-        c["processing"]["network"].pop("whitelist-dns", None)
+    c["processing"]["network"]["safelist_dns"] = cast(
+        "processing:network:safelist_dns",
+        c["processing"]["network"].pop("safelist-dns", None)
     )
     c["processing"]["network"]["allowed_dns"] = cast(
         "processing:network:allowed_dns",
@@ -697,12 +696,35 @@ def _204_205(c):
     return c
 
 def _205_206(c):
+    c["auxiliary"]["replay"] = {
+        "enabled": True,
+        "mitmdump": "/usr/local/bin/mitmdump",
+        "port_base": 51000,
+    }
     c["cuckoo"]["remotecontrol"] = {
         "enabled": False,
         "guacd_host": "localhost",
         "guacd_port": 4822,
     }
+    c["routing"]["inetsim"]["ports"] = None
     c["virtualbox"]["controlports"] = "5000-5050"
+    return c
+
+def _206_207(c):
+    c["auxiliary"]["replay"]["certificate"] = "bin/cert.p12"
+    # We'd like to provide a secure default, but let's not inconvenience
+    # upgrading users. TODO Might need to revisited once we write back config.
+    c["cuckoo"]["cuckoo"]["api_token"] = None
+    c["cuckoo"]["cuckoo"]["web_secret"] = None
+    c["kvm"]["kvm"]["dsn"] = "qemu:///system"
+    c["processing"]["irma"]["probes"] = None
+    c["reporting"]["misp"]["distribution"] = 0
+    c["reporting"]["misp"]["analysis"] = 0
+    c["reporting"]["misp"]["threat_level"] = 4
+    c["reporting"]["misp"]["min_malscore"] = 0
+    c["reporting"]["misp"]["tag"] = "Cuckoo"
+    c["reporting"]["misp"]["upload_sample"] = False
+
     return c
 
 migrations = {
@@ -723,6 +745,7 @@ migrations = {
     "2.0.3": ("2.0.4", _203_204),
     "2.0.4": ("2.0.5", _204_205),
     "2.0.5": ("2.0.6", _205_206),
+    "2.0.6": ("2.0.7", _206_207),
 
     # We're also capable of migrating away from 2.0-dev which basically means
     # that we might have to a partial migration from either 2.0-rc2 or 2.0-rc1.

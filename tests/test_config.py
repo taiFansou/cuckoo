@@ -121,7 +121,7 @@ max_analysis_count = 0
 rooter = /tmp/cuckoo-rooter
 tmppath =
 [resultserver]
-force_port = no
+port = 1234
 [database]
 connection =
 timeout =
@@ -169,7 +169,7 @@ class TestConfigType:
         """Testing the boolean parsing in the configuration file parsing."""
         assert self.cuckoo.get("cuckoo")["version_check"] is True
         assert self.cuckoo.get("cuckoo")["max_analysis_count"] is not False
-        assert self.cuckoo.get("resultserver")["force_port"] is False
+        assert self.cuckoo.get("resultserver")["port"] == 1234
 
     def test_path_parse(self):
         """Testing the Path parsing in the configuration file parsing."""
@@ -876,13 +876,13 @@ interface = hehe
     assert cfg["auxiliary"]["reboot"]["enabled"] is True
     assert cfg["cuckoo"]["routing"]["rt_table"] == "main"
     assert cfg["cuckoo"]["routing"]["auto_rt"] is True
-    assert cfg["cuckoo"]["resultserver"]["force_port"] is False
+    assert cfg["cuckoo"]["resultserver"]["port"] == 2042
     assert cfg["cuckoo"]["timeouts"]["critical"] == 60
     assert cfg["processing"]["misp"]["enabled"] is False
     assert cfg["processing"]["misp"]["url"] is None
     assert cfg["processing"]["misp"]["apikey"] is None
     assert cfg["processing"]["misp"]["maxioc"] == 100
-    assert cfg["processing"]["network"]["whitelist-dns"] is False
+    assert cfg["processing"]["network"]["safelist-dns"] is False
     assert cfg["processing"]["network"]["allowed-dns"] is None
     assert cfg["processing"]["procmemory"]["extract_img"] is True
     assert cfg["processing"]["procmemory"]["dump_delete"] is False
@@ -927,7 +927,7 @@ analysis_size_limit = 104857600
 """)
     Files.create(cwd("conf"), "processing.conf", """
 [network]
-whitelist-dns = yes
+safelist-dns = yes
 allowed-dns = 8.8.8.8
 [procmemory]
 enabled = yes
@@ -988,7 +988,7 @@ interface = eth0
 """)
     cfg = Config.from_confdir(cwd("conf"), loose=True)
     assert "vpn" in cfg
-    assert "whitelist-dns" in cfg["processing"]["network"]
+    assert "safelist-dns" in cfg["processing"]["network"]
     assert "allowed-dns" in cfg["processing"]["network"]
     cfg = migrate(cfg, "2.0-rc2", "2.0.0")
     assert cfg["auxiliary"]["mitm"]["script"] == "mitm.py"
@@ -1000,9 +1000,9 @@ interface = eth0
     assert cfg["cuckoo"]["feedback"]["email"] is None
     assert cfg["cuckoo"]["processing"]["analysis_size_limit"] == 128*1024*1024
     assert cfg["cuckoo"]["resultserver"]["upload_max_size"] == 128*1024*1024
-    assert "whitelist-dns" not in cfg["processing"]["network"]
+    assert "safelist-dns" not in cfg["processing"]["network"]
     assert "allowed-dns" not in cfg["processing"]["network"]
-    assert cfg["processing"]["network"]["whitelist_dns"] is True
+    assert cfg["processing"]["network"]["safelist_dns"] is True
     assert cfg["processing"]["procmemory"]["extract_dll"] is False
     assert cfg["processing"]["network"]["allowed_dns"] == "8.8.8.8"
     assert cfg["processing"]["virustotal"]["enabled"] is False
@@ -1132,6 +1132,9 @@ def test_migration_205_206():
     set_cwd(tempfile.mkdtemp())
     Folders.create(cwd(), "conf")
 
+    Files.create(cwd("conf"), "auxiliary.conf", """
+[mitm]
+    """)
     Files.create(cwd("conf"), "cuckoo.conf", """
 [database]
     """)
@@ -1141,14 +1144,58 @@ machines = vbox1
 [vbox1]
 mode = headless
     """)
+    Files.create(cwd("conf"), "routing.conf", """
+[inetsim]
+enabled = yes
+    """)
     cfg = Config.from_confdir(cwd("conf"), loose=True)
     cfg = migrate(cfg, "2.0.5", "2.0.6")
 
-    assert cfg["cuckoo"]["remotecontrol"]["enabled"] == False
+    assert cfg["auxiliary"]["replay"]["enabled"] is True
+    assert cfg["auxiliary"]["replay"]["mitmdump"] == "/usr/local/bin/mitmdump"
+    assert cfg["auxiliary"]["replay"]["port_base"] == 51000
+    assert cfg["cuckoo"]["remotecontrol"]["enabled"] is False
     assert cfg["cuckoo"]["remotecontrol"]["guacd_host"] == "localhost"
     assert cfg["cuckoo"]["remotecontrol"]["guacd_port"] == 4822
-
     assert cfg["virtualbox"]["controlports"] == "5000-5050"
+    assert cfg["routing"]["inetsim"]["ports"] is None
+
+def test_migration_206_207():
+    set_cwd(tempfile.mkdtemp())
+    Folders.create(cwd(), "conf")
+
+    Files.create(cwd("conf"), "cuckoo.conf", """
+[cuckoo]
+    """)
+    Files.create(cwd("conf"), "processing.conf", """
+[irma]
+    """)
+    Files.create(cwd("conf"), "auxiliary.conf", """
+[replay]
+    """)
+    Files.create(cwd("conf"), "kvm.conf", """
+[kvm]
+machines = cuckoo1
+interface = virbr0
+    """)
+    Files.create(cwd("conf"), "reporting.conf", """
+[misp]
+    """)
+    cfg = Config.from_confdir(cwd("conf"), loose=True)
+    cfg = migrate(cfg, "2.0.6", "2.0.7")
+
+    assert cfg["auxiliary"]["replay"]["certificate"] == "bin/cert.p12"
+    assert cfg["cuckoo"]["cuckoo"]["api_token"] is None
+    assert cfg["cuckoo"]["cuckoo"]["web_secret"] is None
+    assert cfg["processing"]["irma"]["probes"] is None
+    assert cfg["kvm"]["kvm"]["dsn"] == "qemu:///system"
+    assert cfg["reporting"]["misp"]["distribution"] == 0
+    assert cfg["reporting"]["misp"]["analysis"] == 0
+    assert cfg["reporting"]["misp"]["threat_level"] == 4
+    assert cfg["reporting"]["misp"]["min_malscore"] == 0
+    assert cfg["reporting"]["misp"]["tag"] == "Cuckoo"
+    assert cfg["reporting"]["misp"]["upload_sample"] is False
+
 
 class FullMigration(object):
     DIRPATH = None
